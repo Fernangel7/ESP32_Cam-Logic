@@ -4,10 +4,20 @@ Este proyecto implementa un sistema de seguridad biométrico basado en **reconoc
 
 La lógica central es gestionada por una **aplicación web (Express.js)** que maneja usuarios, se conecta a una base de datos **MongoDB Atlas** y consume una **API de IA (Flask)** desplegada en **Google Colab** para el procesamiento de visión artificial.
 
-> **Propósito del Proyecto:** Desarrollar un detector de rostros que identifique y resalte la presencia de rostros humanos [...] usando herramientas de código libre [...] y como resultado esta caja se abrirá automáticamente.
+> **Propósito del Proyecto:** Desarrollar un detector de rostros que identifique y resalte la presencia de rostros humanos [...] usando herramientas de código libre [...] y como resultado una caja fuerte se abrirá automáticamente.
 
 
 *(Demo del proyecto: Se muestra el ESP32, la app web y el desbloqueo del servo)*
+
+---
+
+## 🚀 Enlaces en Vivo (Demos)
+
+Puedes probar los componentes desplegados en los siguientes enlaces:
+
+* **Aplicación Web (Express.js):** `http://(URL_DE_TU_APP_HOSTEADA)`
+* **API de IA (Flask/Colab):** `http://(URL_TEMPORAL_DE_NGROK_O_COLAB)`
+    *(Nota: El enlace de Google Colab/ngrok es temporal y puede cambiar cada vez que se reinicia el notebook.)*
 
 ---
 
@@ -74,23 +84,33 @@ El registro se maneja a través de la aplicación web:
 
 ---
 
-## 🔧 Instalación y Puesta en Marcha
+## 📂 Estructura del Repositorio
 
-*(Esta es una guía de ejemplo. ¡Debes completarla con tus propios pasos!)*
+Este repositorio está organizado en tres ramas principales, cada una conteniendo un componente clave del sistema:
+
+* **main (o master):** Contiene este archivo `README.md` y la documentación general.
+* **app:** Contiene todo el código de la **aplicación web** (Express.js, Node.js, MongoDB).
+* **embedded:** Contiene el firmware para el **ESP32-CAM** (código de Arduino).
+* **nn_model:** Contiene el notebook de Google Colab con la **API de Flask** para el modelo de IA.
+
+---
+
+## 🔧 Instalación y Puesta en Marcha "Local"
 
 ### 1. Hardware (ESP32-CAM)
-1.  Abre el código `.ino` (ubicado en la carpeta `/firmware`) con el IDE de Arduino o PlatformIO.
-2.  Instala las librerías necesarias (Ej. `Adafruit_SSD1306`, `ESP32Servo`, `ArduinoJson`).
-3.  Configura tus credenciales de Wi-Fi y el endpoint de tu API Express:
+1.  Clona o descarga el código desde la rama **`embedded`** del repositorio.
+2.  Abre el código `.ino` con el IDE de Arduino o PlatformIO.
+3.  Instala las librerías necesarias (Ej. `Adafruit_SSD1306`, `ESP32Servo`, `ArduinoJson`).
+4.  Configura tus credenciales de Wi-Fi y el endpoint de tu API Express:
     ```cpp
     const char* ssid = "TU_WIFI";
     const char* password = "TU_PASSWORD";
     const char* api_endpoint = "http://TU_APP_[EXPRESS.com/api/autenticar](https://EXPRESS.com/api/autenticar)";
     ```
-4.  Sube el firmware al ESP32-CAM.
+5.  Sube el firmware al ESP32-CAM.
 
 ### 2. Backend (IA - Colab/Flask)
-1.  Abre el notebook de Google Colab (ubicado en `/IA-API`).
+1.  Abre el notebook de Google Colab ubicado en la rama **`nn_model`** del repositorio.
 2.  Monta tu Google Drive para que el script pueda acceder a los datos del modelo:
     ```python
     from google.colab import drive
@@ -103,7 +123,7 @@ El registro se maneja a través de la aplicación web:
 4.  Ejecuta el script de Flask. Se generará una URL pública (usualmente con `ngrok`) que deberás usar en el siguiente paso.
 
 ### 3. Backend (Web App - Express.js)
-1.  Navega a la carpeta `/webapp`.
+1.  Clona o descarga el código desde la rama **`app`** del repositorio.
 2.  Crea un archivo `.env` en la raíz de esta carpeta con las siguientes variables:
     ```env
     # URL de tu base de datos en MongoDB Atlas
@@ -116,24 +136,50 @@ El registro se maneja a través de la aplicación web:
     IMGUR_CLIENT_ID="TU_CLIENT_ID_IMGUR"
     
     # Puerto para la app web
-    PORT=3000
+    PORT=5000
     ```
 3.  Instala las dependencias: `npm install`
 4.  Ejecuta el servidor: `npm start`
 
 ---
 
-## 👨‍💻 Autores (Equipo 3)
+## 📚 Recursos y Enlaces de Interés
 
-Este proyecto fue desarrollado por:
-* **Bernal Loma Jose Angel**
-* **Castro Bañuelos Jocelyn Danae**
-* **Creano Rodriguez Donovan Joel**
-* **Duran Tapia Diego Alejandro**
-* **Godoy Romo Kevin Imanol**
+* [Documentación oficial de Node.js](https://nodejs.org/)
+* Node.js Libraries: [axios]()
+* Node.js Libraries: [cookie-parser]()
+* Node.js Libraries: [cors]()
+* Node.js Libraries: [dotenv]()
+* Node.js Libraries: [ejs](https://www.npmjs.com/package/ejs)
+* Node.js Libraries: [express]()
+* Node.js Libraries: [jsonwebtoken]()
+* Node.js Libraries: [mongodb]()
+* Node.js Libraries: [sweetalert2]()
+* [Página de MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+* [Tutoriales de Google Colab](https://colab.research.google.com/)
+* [Documentación de OpenCV](https://opencv.org/)
+* [Universidad Tecnologica de Nayarit](https://utnay.edu.mx/)
+* Inda Ceniceros Cesar Eduardo - [GitHub: @CeicGitHub](https://github.com/CeicGitHub)
 
 ---
 
-## 🎓 Agradecimientos
+## 👨‍💻 Autores (Equipo 3)
 
-Un agradecimiento especial a nuestro profesor **Inda Ceniceros Cesar Eduardo** y a la **Universidad Tecnológica de Nayarit** por su guía y apoyo durante el desarrollo de este proyecto.
+* **Bernal Loma Jose Angel** - [GitHub: @Fernangel7](https://github.com/Fernangel7)
+* **Castro Bañuelos Jocelyn Danae** - [GitHub: @(usuario-github)](https://github.com/usuario-github)
+* **Creano Rodriguez Donovan Joel** - [GitHub: @(usuario-github)](https://github.com/usuario-github)
+* **Duran Tapia Diego Alejandro** - [GitHub: @(usuario-github)](https://github.com/usuario-github)
+* **Godoy Romo Kevin Imanol** - [GitHub: @(usuario-github)](https://github.com/usuario-github)
+
+---
+
+## 🎓 Agradecimientos y Contexto Académico
+
+Este proyecto fue desarrollado en el contexto de la **Universidad Tecnológica de Nayarit**.
+
+* **Carrera:** Ingenieria en Tecnologias de la Informacion e Innovacion Digital
+* **Materia:** Sistemas Embebidos & Deep Learning
+* **Grupo:** IA-41
+* **Profesor:** Inda Ceniceros Cesar Eduardo
+
+Un agradecimiento especial a nuestro profesor y a la universidad por su guía y apoyo durante el desarrollo de este proyecto.
