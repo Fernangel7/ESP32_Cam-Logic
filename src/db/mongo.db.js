@@ -39,7 +39,7 @@ const getMongoDataBase = async () => {
         if (!db) throw new Error("❌ No Database Identified...")
         return db
     } catch (err) {
-        console.log(err)
+        //console.log(err)
     }
 }
 
