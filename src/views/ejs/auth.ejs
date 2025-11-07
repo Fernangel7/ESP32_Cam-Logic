@@ -231,7 +231,7 @@
             window.location.reload();
         }
     });
-    
+
     document.addEventListener('DOMContentLoaded', () => {
 
         const form = document.getElementById('login-form');
@@ -304,8 +304,8 @@
 
             const [animation_result, auth_response] = promises
 
-            if (auth_response.status && 
-                auth_response.status == 200 && 
+            if (auth_response.status &&
+                auth_response.status == 200 &&
                 auth_response.data.status == 200) {
                 console.log("no")
                 button.innerText = "Access Granted";

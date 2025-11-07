@@ -21,8 +21,11 @@ const { Unlogged } = require('./middlewares/auth-login.middleware.js')
 //import routers
 const { main_router } = require('./routes/main.router.js')
 const { user_router } = require("./routes/users.router.js")
+const { service_router } = require("./routes/services.router.js")
 
 const app = express()
+
+app.disable('x-powered-by')
 
 //configurating of views engine
 app.set("view engine", "ejs")
@@ -41,6 +44,7 @@ app.use(cookieParser(COOKIE_SECRET_KEY))
 //setting express routers
 app.use("/", main_router)
 app.use("/user", user_router)
+app.use("/service", service_router)
 
 // app.get("/db/in", async (req, res) => await UsersModel.createEmptyColeccionUsers(req, res))
 

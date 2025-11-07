@@ -330,11 +330,14 @@
             <h3>Añadir Nuevo Servicio</h3>
 
             <ul class="available-services-list">
-                <li>Camera Auth</li>
-                <li>API Gateway</li>
-                <li>Cloud Storage</li>
-                <li>Motor de Inferencia</li>
-                <li>Otros</li>
+                <% for (let i=0; i < services.length; i++) { %>
+                    <% if (services[i].activated==true) { %>
+                        <li class="<% if (!services[i].UUID) { %>dontclickevent<% } %> element-<%= i %>-name">
+                            <%= services[i].name %>
+                        </li>
+                        <input type="hidden" class="element-<%= i %>-info <%= services[i].UUID %>">
+                        <% } %>
+                            <% } %>
             </ul>
         </div>
     </div>
@@ -420,7 +423,7 @@
 
         // --- Lógica para Añadir un Nuevo Servicio desde el Modal ---
         availableServices.addEventListener('click', (e) => {
-            if (e.target.tagName === 'LI') {
+            if (e.target.tagName === 'LI' && !e.target.classList.contains("dontclickevent")) {
                 const serviceName = e.target.textContent;
 
                 const newCard = document.createElement('div');

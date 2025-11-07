@@ -28,5 +28,8 @@
     "jsonwebtoken": "9.0.2",
     "mongodb": "6.20.0",
     "sweetalert2": "11.26.3"
+  },
+  "devDependencies": {
+    "lighthouse": "13.0.1"
   }
 }

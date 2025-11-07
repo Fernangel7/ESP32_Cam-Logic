@@ -1,6 +1,7 @@
 const express = require('express')
 const jwt = require("jsonwebtoken")
 const cookieParser = require("cookie-parser")
+const axios = require("axios")
 
 const { JWT_SECRET_KEY } = require("../utils/env.utils.js")
 
@@ -20,15 +21,60 @@ app.get("/", function (req, res) {
     res.redirect("/dashboard")
 })
 
-app.get("/dashboard", Unlogged, function (req, res) {
+app.get("/dashboard", Unlogged, async function (req, res) {
     res.set({
         'Cache-Control': 'no-store, no-cache, must-revalidate, private',
         'Pragma': 'no-cache',
         'Expires': '0'
     });
 
+    const promise = await axios.get(`${req.protocol}://${req.get("host")}/service/get-services`, {
+        timeout: 15000
+    }).catch((err) => {
+        return {
+            status: 200,
+            data: {
+                status: 204,
+                msg: "no data"
+            }
+        }
+    })
+
+    // console.log(promise)
+    // console.log(promise.length)
+    console.log(promise.data)
+    // console.log(Object.keys(promise).includes("data"))
+
+    let service_data
+
+    if (promise.status &&
+        promise.status == 200 &&
+        promise.data.status == 200) {
+
+        service_data = [
+            ...promise.data.return
+        ]
+    } else service_data = [
+        {
+            name: "No Disponible",
+            UUID: '',
+            activated: true
+        }
+    ]
+
+    console.log(service_data)
+
     res.render("dashboard", {
-        title: title
+        title: title,
+        services: [
+            ...service_data
+        ],
+        user_data: {
+            basics: {
+                name: '',
+                id: ''
+            }
+        }
     })
 })
 
@@ -51,8 +97,27 @@ app.get("/rem", function (req, res) {
         secure: true,
         sameSite: 'Strict'
     })
-    
+
     res.redirect("/")
+})
+
+app.get("/test", function (req, res) {
+    res.render("test")
+})
+
+const { database } = require("../db/create.db.js")
+app.get("/cdb", async function (req, res) {
+    await database.create_empty_services_collection(req, res)
+    await database.create_empty_configured_services_collection(req, res)
+    await database.create_empty_service_settings_collection(req, res)
+
+    res.json("empty created!")
+})
+
+const { service_model } = require("../models/mongo/services.model.js")
+app.get("/cdb-basic", async function (req, res) {
+    await service_model.add_service(req, res)
+    res.json("basic created!")
 })
 
 /*

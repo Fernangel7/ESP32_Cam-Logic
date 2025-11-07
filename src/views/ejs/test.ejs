@@ -1,0 +1,487 @@
+<style>
+  /* --- ... (Estilos globales, .dashboard-container, .sidebar, etc. sin cambios) ... --- */
+
+  .main-content {
+    flex-basis: 78%;
+    padding: 2rem 3rem;
+    overflow-y: auto;
+    position: relative;
+    /* Necesario para las vistas */
+  }
+
+  /* --- VISTA 1: LISTA (Sin cambios) --- */
+  #service-list-view {
+    /* Visible por defecto */
+  }
+
+  .main-header {
+    /* ... (sin cambios) ... */
+  }
+
+  .service-card {
+    /* ... (sin cambios) ... */
+  }
+
+  .no-services-msg {
+    /* ... (sin cambios) ... */
+  }
+
+
+  /* --- VISTA 2: CONFIGURACIÓN (Oculta por defecto) --- */
+  #service-config-view {
+    display: none;
+    /* Oculto por JS */
+  }
+
+  .config-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+  }
+
+  .config-header h3 {
+    margin: 0;
+    font-weight: 400;
+    color: var(--text-secondary);
+  }
+
+  .back-button {
+    background: none;
+    border: none;
+    color: var(--primary-blue);
+    font-size: 1rem;
+    font-family: 'Exo 2', sans-serif;
+    cursor: pointer;
+    margin-right: 1.5rem;
+    transition: color 0.3s ease;
+  }
+
+  .back-button:hover {
+    color: var(--text-primary);
+  }
+
+  /* Contenedor del formulario con efecto vidrio */
+  .config-form-container {
+    background: var(--glass-bg);
+    border: 1px solid var(--primary-purple);
+    border-radius: 10px;
+    padding: 2.5rem 3rem;
+    box-shadow: 0 0 20px rgba(111, 0, 255, 0.3);
+  }
+
+  #config-form {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* --- Estilos de Inputs (Reutilizados y nuevos) --- */
+  .input-group {
+    position: relative;
+    margin-bottom: 2.5rem;
+    /* Más espacio */
+  }
+
+  .input-group input {
+    width: 100%;
+    padding: 10px 0;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid var(--primary-purple);
+    color: white;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+
+  .input-group label {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    color: var(--text-secondary);
+    pointer-events: none;
+    transition: all 0.3s ease;
+  }
+
+  /* Animación de label flotante */
+  .input-group input:focus+label,
+  .input-group input:valid+label,
+  .input-group input:not(:placeholder-shown)+label {
+    top: -15px;
+    font-size: 0.8rem;
+    color: var(--primary-blue);
+  }
+
+  .input-group input:focus {
+    border-color: var(--primary-blue);
+  }
+
+  /* Estilo para <select> */
+  .input-group .select-label {
+    /* Label estático para el select */
+    position: static;
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+  }
+
+  .input-group select {
+    width: 100%;
+    padding: 10px 5px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--primary-purple);
+    border-radius: 5px;
+    color: var(--text-primary);
+    font-family: 'Exo 2', sans-serif;
+    outline: none;
+  }
+
+  .input-group select:focus {
+    border-color: var(--primary-blue);
+  }
+
+
+  /* --- NUEVO: Interruptor (Toggle Switch) --- */
+  .toggle-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin-bottom: 2.5rem;
+  }
+
+  .toggle-group label {
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+  }
+
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #333;
+    transition: .4s;
+    border-radius: 28px;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+  }
+
+  input:checked+.slider {
+    background-color: var(--primary-blue);
+  }
+
+  input:checked+.slider:before {
+    transform: translateX(22px);
+  }
+
+  /* Botón de Guardar */
+  #save-config-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1rem;
+    /* Reutiliza .nav-button, pero lo hago explícito */
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  #save-config-btn:hover {
+    background: var(--primary-purple);
+    box-shadow: 0 0 15px var(--primary-purple);
+  }
+
+  /* ... (Estilos del .modal sin cambios) ... */
+</style>
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <div class="dashboard-container">
+
+    <aside class="sidebar">
+      <div class="profile-section">
+        <img src="httpsa://via.placeholder.com/100/4d4dff/f0f0f0?text=AI" alt="Avatar">
+        <h3>Agent_7</h3>
+        <p>ID: 8A-113N</p>
+      </div>
+    </aside>
+
+    <main class="main-content">
+
+      <div id="service-list-view">
+        <div class="main-header">
+          <h2>Servicios Vinculados</h2>
+          <button id="add-service-btn" class="nav-button">
+            Añadir Servicio
+          </button>
+        </div>
+
+        <div id="service-list">
+          <p id="no-services-msg" class="no-services-msg">
+            No hay servicios registrados
+          </p>
+        </div>
+      </div>
+
+      <div id="service-config-view">
+
+        <div class="config-header">
+          <button id="back-to-list-btn" class="back-button">&lt; Volver</button>
+          <h3 id="config-title">Configurando Servicio</h3>
+        </div>
+
+        <div class="config-form-container">
+          <form id="config-form">
+
+            <div class="toggle-group">
+              <label for="service-status">Estado del Servicio</label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="service-status" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="input-group">
+              <input type="text" id="config-service-name" required>
+              <label for="config-service-name">Nombre del Servicio</label>
+            </div>
+
+            <div class="input-group">
+              <input type="password" id="config-api-key" required>
+              <label for="config-api-key">API Key</label>
+            </div>
+
+            <div class="input-group">
+              <label for="config-model" class="select-label">Modelo de Inferencia</label>
+              <select id="config-model">
+                <option value="model-a">Modelo Alpha (Rápido)</option>
+                <option value="model-b">Modelo Beta (Preciso)</option>
+                <option value="model-c">Modelo Gamma (Balanceado)</option>
+              </select>
+            </div>
+
+            <button type="submit" id="save-config-btn" class="nav-button">
+              Guardar Cambios
+            </button>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="add-service-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn">&times;</span>
+      <h3>Añadir Nuevo Servicio</h3>
+
+      <ul class="available-services-list">
+        <li>Autenticación por Cámara</li>
+        <li>API Gateway</li>
+        <li>Cloud Storage</li>
+        <li>Motor de Inferencia</li>
+        <li>Otros</li>
+      </ul>
+    </div>
+  </div>
+
+</body>
+
+</html>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+
+    // --- Referencias del DOM ---
+    const addServiceBtn = document.getElementById('add-service-btn');
+    const modal = document.getElementById('add-service-modal');
+    const closeModalBtn = modal.querySelector('.close-btn');
+    const serviceList = document.getElementById('service-list');
+    const availableServices = modal.querySelector('.available-services-list');
+    const noServicesMsg = document.getElementById('no-services-msg');
+
+    // --- Referencias para Vistas ---
+    const listView = document.getElementById('service-list-view');
+    const configView = document.getElementById('service-config-view');
+    const backBtn = document.getElementById('back-to-list-btn');
+    const configTitle = document.getElementById('config-title');
+    const saveConfigBtn = document.getElementById('save-config-btn');
+    const configForm = document.getElementById('config-form');
+
+    // --- Referencias a Campos del Form ---
+    const configNameInput = document.getElementById('config-service-name');
+    const configStatusInput = document.getElementById('service-status');
+    const configApiInput = document.getElementById('config-api-key');
+
+    let currentEditingCard = null;
+
+    // --- Lógica de Vistas ---
+
+    function showListView() {
+      listView.style.display = 'block';
+      configView.style.display = 'none';
+      currentEditingCard = null;
+    }
+
+    function showConfigView(card) {
+      currentEditingCard = card;
+
+      const serviceName = card.querySelector('h4').textContent;
+      const status = card.querySelector('.status').classList.contains('active');
+
+      configTitle.textContent = `Configurando: ${serviceName}`;
+      configNameInput.value = serviceName;
+      configStatusInput.checked = status;
+
+      // Limpiamos el campo de API key cada vez que abrimos
+      configApiInput.value = "";
+
+      listView.style.display = 'none';
+      configView.style.display = 'block';
+    }
+
+    // --- Lógica del Modal (Añadir Servicio) ---
+    addServiceBtn.addEventListener('click', () => modal.style.display = 'flex');
+    closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
+    window.addEventListener('click', (e) => {
+      if (e.target === modal) modal.style.display = 'none';
+    });
+
+    // --- Lógica de Servicios (Eliminar y Modificar) ---
+
+    // 
+    // AQUÍ ESTÁ LA CORRECCIÓN: 
+    // La función 'deleteService' ahora tiene su código.
+    //
+    function deleteService(e) {
+      const card = e.target.closest('.service-card');
+
+      // Animación de desaparición
+      card.style.transition = 'opacity 0.4s ease, transform 0.4s ease, height 0.4s ease, margin 0.4s, padding 0.4s';
+      card.style.opacity = '0';
+      card.style.transform = 'scale(0.9)';
+      card.style.height = '0px';
+      card.style.margin = '0';
+      card.style.padding = '0';
+
+      // Espera a que termine la animación para eliminarlo del DOM
+      setTimeout(() => {
+        card.remove();
+        updateServiceListState(); // Actualiza el mensaje "No hay servicios"
+      }, 400);
+    }
+
+    function modifyService(e) {
+      const card = e.target.closest('.service-card');
+      showConfigView(card);
+    }
+
+    function addListenersToCard(card) {
+      card.querySelector('.delete-btn').addEventListener('click', deleteService);
+      card.querySelector('.modify-btn').addEventListener('click', modifyService);
+    }
+
+    // --- Lógica de Añadir Servicio desde Modal ---
+    availableServices.addEventListener('click', (e) => {
+      if (e.target.tagName === 'LI') {
+        const serviceName = e.target.textContent;
+        const newCard = document.createElement('div');
+        newCard.classList.add('service-card');
+
+        newCard.innerHTML = `
+                <div class="service-info">
+                    <h4>${serviceName}</h4>
+                    <span class="status active">Activo</span>
+                </div>
+                <div class="card-actions">
+                    <button class="action-btn modify-btn">Modificar</button>
+                    <button class="action-btn delete-btn">Eliminar</button>
+                </div>
+            `;
+        serviceList.appendChild(newCard);
+        addListenersToCard(newCard);
+        modal.style.display = 'none';
+        updateServiceListState();
+      }
+    });
+
+    // --- Lógica de la Vista de Configuración ---
+
+    backBtn.addEventListener('click', showListView);
+
+    configForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      if (!currentEditingCard) return;
+
+      const newName = configNameInput.value;
+      const newStatus = configStatusInput.checked;
+
+      currentEditingCard.querySelector('h4').textContent = newName;
+
+      const statusSpan = currentEditingCard.querySelector('.status');
+      if (newStatus) {
+        statusSpan.textContent = 'Activo';
+        statusSpan.classList.add('active');
+        statusSpan.classList.remove('inactive');
+      } else {
+        statusSpan.textContent = 'Inactivo';
+        statusSpan.classList.add('inactive');
+        statusSpan.classList.remove('active');
+      }
+
+      showListView();
+    });
+
+    // --- Funciones de Estado ---
+    function updateServiceListState() {
+      const services = serviceList.querySelectorAll('.service-card');
+      if (services.length === 0) {
+        noServicesMsg.style.display = 'block';
+      } else {
+        noServicesMsg.style.display = 'none';
+      }
+    }
+
+    updateServiceListState(); // Comprobación inicial
+  });
+</script>

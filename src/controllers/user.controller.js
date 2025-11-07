@@ -16,7 +16,7 @@ class user_controller {
 
             const response = await user_model.auth_user(data, {})
 
-            console.log(response)
+            //console.log(response)
 
             try {
                 if (response.status == 200) res.cookie(
