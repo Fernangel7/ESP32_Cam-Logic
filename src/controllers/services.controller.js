@@ -60,7 +60,7 @@ class service_controller {
             // console.log(service_exists)
 
             return res.status(200).json({ ...service_exists })
-        } catch (err) { console.log(err) }
+        } catch (err) { }
 
         return res.status(200).json({
             status: 204,
@@ -78,7 +78,7 @@ class service_controller {
 
             return res.status(200).json({ ...response })
             
-        } catch (err) { console.log(err) }
+        } catch (err) { }
 
         return res.status(200).json({
             status: 204,

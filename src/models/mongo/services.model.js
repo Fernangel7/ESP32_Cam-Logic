@@ -224,7 +224,7 @@ output: {
                 status: 200,
                 services: [ ...response ]
             }
-        } catch (err) { console.log(err) }
+        } catch (err) { }
 
         return { status: 204, error: "❌ Error on find a service on the Database", data: {} }
     }

@@ -110,7 +110,7 @@ app.get("/dashboard", Unlogged, async function (req, res) {
     const s_configured_filter = {
         status: s_configured.status,
         services: s_configured.services.map(service => {
-            const { userUUID, config_data, register_date, ...resto } = service;
+            const { userUUID, register_date, ...resto } = service;
 
             return resto;
         })

@@ -95,7 +95,7 @@ class user_model {
                 UUID: result[0].UUID,
                 name: result[0].name
             }
-        } catch (err) { console.log(err) }
+        } catch (err) { }
 
         return {
             status: 204,
