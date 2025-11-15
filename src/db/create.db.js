@@ -72,6 +72,55 @@ class database {
             // responses.push(await this.add_user(req, res))
 
             // res.json(responses)
+
+            await db.createCollection('configured_services', {
+                validator: {
+                    $jsonSchema: {
+                        bsonType: 'object',
+                        required: [],
+                        properties: {
+                            UUID: {
+                                bsonType: 'string',
+                                description: 'Universal Unique Identificator'
+                            },
+                            userUUID: {
+                                bsonType: 'string',
+                                description: 'Universal Unique Service Identificator from user'
+                            },
+                            name: {
+                                bsonType: 'string',
+                                description: 'El nombre del usuario debe ser un texto y es obligatorio'
+                            },
+                            n_rep: {
+                                bsonType: 'string',
+                                description: 'a random identifier number'
+                            },
+                            config_data: {
+                                bsonType: 'object',
+                                description: 'config data storage'
+                            },
+                            activated: {
+                                bsonType: 'bool',
+                                description: 'Indica si el usuario está activo o no (opcional)'
+                            },
+                            register_date: {
+                                bsonType: 'date',
+                                description: 'Fecha en que se registró el usuario (opcional)'
+                            }
+                        }
+                    }
+                }
+            })
+
+            const configured_services = db.collection('configured_services')
+
+            await configured_services.createIndex({ UUID: 1 }, { unique: true, name : 'idx_uuid_unique' });
+            await configured_services.createIndex({ userUUID: 1 }, { unique: true, name : 'idx_useruuid_unique' });
+            await configured_services.createIndex({ name: 1 }, { name : 'idx_name' });
+            await configured_services.createIndex({ "config_data.activated": 1 }, { name : 'idx_config_data_activated' });
+            await configured_services.createIndex({ activated: 1 }, { name : 'idx_activated' });
+            await configured_services.createIndex({ register_date: -1 }, { name : 'idx_register_date_desc' });
+
             return { status: 200, response: "✅ Database created successfully" }
         } catch (err) {
             // console.log(err)
@@ -127,7 +176,7 @@ class database {
             await services.createIndex({ UUID: 1 }, { unique: true });
             await services.createIndex({ name: 1 });
             await services.createIndex({ description: 1 });
-            await services.createIndex({ type: 1});
+            await services.createIndex({ type: 1 });
             await services.createIndex({ activated: 1 });
             await services.createIndex({ register_date: -1 });
 

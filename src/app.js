@@ -40,6 +40,7 @@ connectMongo()
 //setting middlewares
 app.use(corsMiddleware())
 app.use(cookieParser(COOKIE_SECRET_KEY))
+app.use(express.json())
 
 //setting express routers
 app.use("/", main_router)

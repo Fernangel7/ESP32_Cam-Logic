@@ -1,9 +1,5 @@
 const express = require('express')
-const jwt = require("jsonwebtoken")
-const cookieParser = require("cookie-parser")
 const axios = require("axios")
-
-const { JWT_SECRET_KEY } = require("../utils/env.utils.js")
 
 const { title } = require("../utils/data.utils.js")
 
@@ -28,22 +24,33 @@ app.get("/dashboard", Unlogged, async function (req, res) {
         'Expires': '0'
     });
 
-    const promise = await axios.get(`${req.protocol}://${req.get("host")}/service/get-services`, {
-        timeout: 15000
-    }).catch((err) => {
-        return {
-            status: 200,
-            data: {
-                status: 204,
-                msg: "no data"
+    const [promise, data_user] = await Promise.all([
+        axios.get(`${req.protocol}://${req.get("host")}/service/get-services`, {
+            timeout: 15000
+        }).catch((err) => {
+            return {
+                status: 200,
+                data: {
+                    status: 204,
+                    msg: "no data"
+                }
             }
-        }
-    })
-
-    // console.log(promise)
-    // console.log(promise.length)
-    console.log(promise.data)
-    // console.log(Object.keys(promise).includes("data"))
+        }),
+        axios.get(`${req.protocol}://${req.get("host")}/user/get-info`, {
+            headers: {
+                'Cookie': req.headers['cookie']
+            },
+            timeout: 15000,
+        }).catch((err) => {
+            return {
+                status: 200,
+                data: {
+                    status: 204,
+                    msg: "no data"
+                }
+            }
+        })
+    ])
 
     let service_data
 
@@ -62,7 +69,52 @@ app.get("/dashboard", Unlogged, async function (req, res) {
         }
     ]
 
-    console.log(service_data)
+    let iduser, nameuser
+
+    if (data_user.status &&
+        data_user.status == 200 &&
+        data_user.data.status == 200) {
+        nameuser = data_user.data.name
+        iduser = data_user.data.id
+    } else {
+        nameuser = 'Unknown'
+        iduser = 'Unknown'
+    }
+
+    const get_configured_services = await axios.get(`${req.protocol}://${req.get("host")}/service/get-configured-services`, {
+        params: {
+            userUUID: data_user.data.uuid
+        },
+        timeout: 15000,
+    }).catch((err) => {
+        return {
+            status: 200,
+            data: {
+                status: 204,
+                msg: "no data"
+            }
+        }
+    })
+
+    let s_configured
+
+    if (get_configured_services.status &&
+        get_configured_services.status == 200 &&
+        get_configured_services.data.status == 200) {
+        // console.log(get_configured_services.data)
+        s_configured = { ...get_configured_services.data }
+    } else {
+        s_configured = {}
+    }
+
+    const s_configured_filter = {
+        status: s_configured.status,
+        services: s_configured.services.map(service => {
+            const { userUUID, config_data, register_date, ...resto } = service;
+
+            return resto;
+        })
+    };
 
     res.render("dashboard", {
         title: title,
@@ -71,9 +123,10 @@ app.get("/dashboard", Unlogged, async function (req, res) {
         ],
         user_data: {
             basics: {
-                name: '',
-                id: ''
-            }
+                name: nameuser,
+                id: iduser
+            },
+            services: s_configured_filter
         }
     })
 })
@@ -90,7 +143,7 @@ app.get("/auth", Logged, function (req, res) {
     })
 })
 
-app.get("/rem", function (req, res) {
+app.get("/logout", function (req, res) {
     res.clearCookie("refeshToken", {
         signed: true,
         httpOnly: true,
@@ -115,83 +168,12 @@ app.get("/cdb", async function (req, res) {
 })
 
 const { service_model } = require("../models/mongo/services.model.js")
+
 app.get("/cdb-basic", async function (req, res) {
     await service_model.add_service(req, res)
+    await require('../models/mongo/users.model.js').user_model.add_user()
     res.json("basic created!")
 })
-
-/*
-app.post("/crypt", async function (req, res) {
-    try {
-        const token = jwt.sign(
-            { ...req.body },
-            JWT_SECRET_KEY,
-            { expiresIn: "5m" }
-        )
-
-        res.cookie("token", token, {
-            signed: true,
-            httpOnly: true,
-            secure: true,
-            sameSite: "strict",
-            path: "/",
-            maxAge: 5 * 60 * 1000
-        })
-
-    } catch (err) {
-        return res.status(400).json({
-            response: {
-                status: 400,
-                error: "❌ Error encrypting token!"
-            }
-        })
-    }
-
-    res.status(200).json({
-        response: {
-            status: 200
-        }
-    })
-})
-
-app.post("/del-crypt", function (req, res) {
-    const token = req.cookies.token
-
-    let decrypt_token
-
-    if (!token) {
-        return res.status(400).json({
-            response: {
-                status: 400,
-                error: "❌ The token doesn't exist!"
-            }
-        })
-    }
-
-    try {
-        res.clearCookie("token", {
-            signed: true,
-            httpOnly: true,
-            secure: true,
-            sameSite: "strict",
-            path: "/"
-        })
-    } catch (err) {
-        return res.status(400).json({
-            response: {
-                status: 400,
-                error: "❌ Error decrypting token!"
-            }
-        })
-    }
-
-    res.status(200).json({
-        response: {
-            status: 200
-        }
-    })
-})
-*/
 
 module.exports = {
     main_router: app

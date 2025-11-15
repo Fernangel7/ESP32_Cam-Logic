@@ -279,6 +279,25 @@
         color: white;
         transform: translateX(5px);
     }
+
+    .pre_name_serv_num {
+        scale: 0.9;
+        display: inline-flex;
+        margin: 0;
+        background-color: #f4f4f410;
+        border: 1px solid #ddd1;
+        border-radius: 5px;
+        padding: .1rem .5rem;
+        padding-right: .55rem;
+        overflow-x: auto;
+    }
+
+    .pre_name_serv_num code {
+        font-family: 'Consolas', 'Menlo', 'Courier New', monospace;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        opacity: .5;
+    }
 </style>
 
 <!DOCTYPE html>
@@ -290,6 +309,8 @@
     <title>
         <%= title %>
     </title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 
@@ -300,8 +321,11 @@
         <aside class="sidebar">
             <div class="profile-section">
                 <img src="./img/ktdi.jpeg" alt="Avatar">
-                <h3>Angel_Agent</h3>
-                <p>ID: 8A-113N</p>
+                <h3>
+                    <%= user_data.basics.name %>
+                </h3>
+                <p>ID: <%= user_data.basics.id %>
+                </p>
             </div>
 
         </aside>
@@ -316,9 +340,26 @@
             </div>
 
             <div id="service-list">
-                <p id="no-services-msg" class="no-services-msg">
-                    No hay servicios registrados
-                </p>
+                <% const srv=user_data.services.services; if (!srv || srv.length <=0) { %>
+                    <p id="no-services-msg" class="no-services-msg">
+                        No hay servicios registrados
+                    </p>
+                    <% } else { for (let i=0; i<srv.length; i++) { %>
+                        <div class="service-card %>">
+                            <div class="service-info">
+                                <h4>
+                                    <%= srv[i].name %>&nbsp;
+                                        <pre class="pre_name_serv_num"><code>#<%= srv[i].n_rep %></code></pre>
+                                </h4>
+                                <span class="status active">Done</span>
+                                <input type="hidden" id="element_id" value="<%= srv[i].UUID %>">
+                            </div>
+                            <div class="card-actions">
+                                <button class="show_keys_service action-btn modify-btn">Ver Keys</button>
+                                <button class="delete_service action-btn delete-btn">Eliminar</button>
+                            </div>
+                        </div>
+                        <% } } %>
             </div>
         </main>
 
@@ -335,7 +376,7 @@
                         <li class="<% if (!services[i].UUID) { %>dontclickevent<% } %> element-<%= i %>-name">
                             <%= services[i].name %>
                         </li>
-                        <input type="hidden" class="element-<%= i %>-info <%= services[i].UUID %>">
+                        <input type="hidden" class="element-<%= i %>-info" value="<%= services[i].UUID %>">
                         <% } %>
                             <% } %>
             </ul>
@@ -370,10 +411,12 @@
         // --- CAMBIO 2: Función para mostrar/ocultar el mensaje ---
         function updateServiceListState() {
             const services = serviceList.querySelectorAll('.service-card');
-            if (services.length === 0) {
-                noServicesMsg.style.display = 'block';
-            } else {
-                noServicesMsg.style.display = 'none';
+            if (noServicesMsg) {
+                if (services.length === 0) {
+                    noServicesMsg.style.display = 'block';
+                } else {
+                    noServicesMsg.style.display = 'none';
+                }
             }
         }
 
@@ -390,63 +433,182 @@
             }
         });
 
-        // --- Lógica de Servicios (Modificar, Eliminar) ---
-        function deleteService(e) {
-            const card = e.target.closest('.service-card');
-            card.style.transition = 'opacity 0.4s ease, transform 0.4s ease, height 0.4s ease, margin 0.4s, padding 0.4s';
-            card.style.opacity = '0';
-            card.style.transform = 'scale(0.9)';
-            card.style.height = '0px';
-            card.style.margin = '0';
-            card.style.padding = '0';
-
-            setTimeout(() => {
-                card.remove();
-                updateServiceListState(); // CAMBIO 3: Actualizar al eliminar
-            }, 400);
-        }
-
-        function modifyService(e) {
-            const card = e.target.closest('.service-card');
-            const serviceName = card.querySelector('h4').textContent;
-            const newName = prompt(`Modificar el nombre de: "${serviceName}"`, serviceName);
-
-            if (newName && newName.trim() !== "") {
-                card.querySelector('h4').textContent = newName.trim();
-            }
-        }
-
-        function addListenersToCard(card) {
-            card.querySelector('.delete-btn').addEventListener('click', deleteService);
-            card.querySelector('.modify-btn').addEventListener('click', modifyService);
-        }
-
         // --- Lógica para Añadir un Nuevo Servicio desde el Modal ---
-        availableServices.addEventListener('click', (e) => {
+        availableServices.addEventListener('click', async (e) => {
             if (e.target.tagName === 'LI' && !e.target.classList.contains("dontclickevent")) {
-                const serviceName = e.target.textContent;
+                const serviceName = e.target.textContent
 
-                const newCard = document.createElement('div');
-                newCard.classList.add('service-card');
+                modal.style.display = 'none'
 
-                newCard.innerHTML = `
-                    <div class="service-info">
-                        <h4>${serviceName}</h4>
-                        <span class="status inactive">Pending</span>
-                    </div>
-                    <div class="card-actions">
-                        <button class="action-btn modify-btn">Modificar</button>
-                        <button class="action-btn delete-btn">Eliminar</button>
-                    </div>
-                `;
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Procesando Peticion',
+                    showConfirmButton: false,
+                    background: 'rgba(15, 10, 30, 1)'
+                })
 
-                serviceList.appendChild(newCard);
-                addListenersToCard(newCard);
-                modal.style.display = 'none';
+                let clsTar = `.${String(e.target.classList).trim()}`
 
-                updateServiceListState(); // CAMBIO 4: Actualizar al añadir
+                clsTar = clsTar.substring(0, clsTar.length - 4) + 'info'
+
+                const UUID_service = document.querySelector(clsTar).value;
+                const service_name = serviceName
+                const service_name_formatted = service_name.trim().replace(/\s+/g, '_').toLowerCase();
+
+                try {
+                    const response = await axios.post('/service/configurations/get',
+                        {
+                            UUID: UUID_service,
+                            name: service_name_formatted
+                        }
+                    );
+
+                    try {
+                        if (response && response.status == 200 && response.data.status == 200) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Servicio Añadido',
+                                html: `<p>El servicio "<strong>${serviceName}</strong>" ha sido añadido correctamente.</p>`,
+
+                                // 1. Muestra el botón de confirmación
+                                showConfirmButton: true,
+                                // 2. Cambia el texto de ese botón
+                                confirmButtonText: 'Show Config Keys',
+                                background: 'rgba(15, 10, 30, 1)',
+
+                                // 3. (Opcional) Si quieres un botón de "Cerrar"
+                                showCancelButton: true,
+                                cancelButtonText: 'Cerrar'
+
+                            }).then((result) => {
+                                // 4. Comprueba si el usuario hizo clic en "Show Config Keys"
+                                // ...dentro del .then() de la primera alerta
+                                if (result.isConfirmed) {
+
+                                    const accessKey = response.data.config_data.access_key;
+                                    const accessPassword = response.data.config_data.access_password;
+                                    const endpointUrl = response.data.config_data.EndPoint;
+                                    const example_input = response.data.example_input;
+                                    const example_output = response.data.example_output;
+
+                                    // Función simple para manejar el clic de copiado
+                                    const handleCopyClick = (textToCopy, buttonElement) => {
+                                        navigator.clipboard.writeText(textToCopy)
+                                            .then(() => {
+                                                const originalText = buttonElement.innerText;
+                                                buttonElement.innerText = '¡Copiado!';
+                                                // Lo revertimos después de 2 segundos
+                                                setTimeout(() => {
+                                                    buttonElement.innerText = originalText;
+                                                }, 2000);
+                                            })
+                                            .catch(err => { /*console.error('Error al copiar: ', err)*/ });
+                                    };
+
+                                    Swal.fire({
+                                        title: 'Config Keys',
+                                        icon: 'info',
+                                        // 1. HTML con botones (usamos clases en lugar de IDs)
+                                        html: `
+                                            <p>Aquí están las claves para <strong>configurar tu ESP32</strong>:</p>
+                                            <br>
+                                            <div style="text-align: left; margin: 10px 0;">
+                                                <p><strong>Access Key:</strong> ${accessKey.substring(0, 8)}... 
+                                                    <button class="copy-btn swal2-styled swal2-default" data-copy-text="${accessKey}" style="margin-left: 10px; font-size: 0.8em; padding: 5px 10px; background: #7066e0; color: #bfbfbf;">Copiar</button>
+                                                </p>
+                                                <p><strong>Access Password:</strong> ${accessPassword.substring(0, 8)}...
+                                                    <button class="copy-btn swal2-styled swal2-default" data-copy-text="${accessPassword}" style="margin-left: 10px; font-size: 0.8em; padding: 5px 10px; background: #7066e0; color: #bfbfbf;">Copiar</button>
+                                                </p>
+                                                <p><strong>Endpoint URL:</strong> ${endpointUrl.substring(0, 8)}...
+                                                    <button class="copy-btn swal2-styled swal2-default" data-copy-text="${endpointUrl}" style="margin-left: 10px; font-size: 0.8em; padding: 5px 10px; background: #7066e0; color: #bfbfbf;">Copiar</button>
+                                                </p>
+                                                <p><strong>Input Example:</strong> {...}
+                                                    <button class="copy-btn swal2-styled swal2-default" data-copy-text="${example_input}" style="margin-left: 10px; font-size: 0.8em; padding: 5px 10px; background: #7066e0; color: #bfbfbf;">Copiar</button>
+                                                </p>
+                                                <p><strong>Output Example:</strong> {...}
+                                                    <button class="copy-btn swal2-styled swal2-default" data-copy-text="${example_output}" style="margin-left: 10px; font-size: 0.8em; padding: 5px 10px; background: #7066e0; color: #bfbfbf;">Copiar</button>
+                                                </p>
+                                            </div>
+                                        `,
+                                        confirmButtonText: 'Cerrar',
+                                        background: 'rgba(15, 10, 30, 1)',
+
+                                        // 2. didOpen para asignar listeners
+                                        didOpen: () => {
+                                            // Buscamos TODOS los botones con la clase 'copy-btn'
+                                            document.querySelectorAll('.copy-btn').forEach(button => {
+                                                button.addEventListener('click', () => {
+                                                    // Obtenemos el texto del atributo 'data-copy-text'
+                                                    const text = button.getAttribute('data-copy-text');
+                                                    handleCopyClick(text, button);
+                                                });
+                                            });
+                                        }
+                                    });
+                                } else {
+                                    location.reload(true)
+                                }
+                            });
+                            updateServiceListState(); // CAMBIO 4: Actualizar al añadir
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Servicio Añadido',
+                                html: `hubo un error al intentar configurar tu servicio`,
+                                position: "center",
+                                showConfirmButton: true,
+                                focusConfirm: true,
+                                background: 'rgba(15, 10, 30, 1)',
+                                timer: 3500,
+                                timerProgressBar: true,
+                                customClass: {
+                                    title: 'swal-title-custom_failed',
+                                    htmlContainer: 'swal-text-custom'
+                                }
+                            })
+                        }
+                    } catch (error) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Servicio Añadido',
+                            html: `hubo un error al intentar configurar tu servicio`,
+                            position: "center",
+                            showConfirmButton: true,
+                            focusConfirm: true,
+                            background: 'rgba(15, 10, 30, 1)',
+                            timer: 3500,
+                            timerProgressBar: true,
+                            customClass: {
+                                title: 'swal-title-custom_failed',
+                                htmlContainer: 'swal-text-custom'
+                            }
+                        })
+                    }
+                    // console.log(response.data);
+                } catch (error) {
+                    console.error('Error al añadir el servicio:', error);
+                }
+
             }
         });
+
+        const g_parent = (e) => `.${e.parentElement.parentElement.classList[0]}`
+        const shows_data = (e) => document.querySelector(g_parent(e)).getHTML
+
+
+        document.querySelectorAll('.delete_service').forEach((e) => {
+            e.addEventListener('click', function (obj) {
+                const uuid_service = [...[...e.parentElement.parentElement.children].filter(element => { if (element.className === "service-info") return element })[0].children].filter(element => { return element.tagName === 'INPUT' && element.type === 'hidden' })[0].value
+                Swal.fire(uuid_service)
+            })
+        })
+
+        document.querySelectorAll('.show_keys_service').forEach((e) => {
+            e.addEventListener('click', function (obj) {
+                const uuid_service = [...[...e.parentElement.parentElement.children].filter(element => { if (element.className === "service-info") return element })[0].children].filter(element => { return element.tagName === 'INPUT' && element.type === 'hidden' })[0].value
+                Swal.fire(uuid_service)
+            })
+        })
 
         // --- CAMBIO 5: Comprobar el estado inicial al cargar la página ---
         updateServiceListState();
