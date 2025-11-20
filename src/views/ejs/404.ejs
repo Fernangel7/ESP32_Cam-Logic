@@ -1,0 +1,138 @@
+<style>
+	:root {
+		--primary-blue: #4d4dff;
+		--primary-purple: #6f00ff;
+		--dark-bg: #0a051a;
+		--glass-bg: rgba(15, 10, 30, 0.7);
+		--text-primary: #f0f0f0;
+		--text-secondary: rgba(240, 240, 240, 0.6);
+		--error-pink: #ff0066;
+	}
+
+	body {
+		font-family: 'Exo 2', sans-serif;
+		background: radial-gradient(ellipse at bottom, var(--dark-bg) 0%, #1a0a3a 50%, #2a0d5a 100%);
+		background-color: var(--dark-bg);
+		color: var(--text-primary);
+		display: grid;
+		place-items: center;
+		min-height: 100vh;
+		margin: 0;
+		overflow: hidden;
+	}
+
+	.error-container {
+		background: var(--glass-bg);
+		backdrop-filter: blur(12px);
+		border: 1px solid var(--primary-blue);
+		border-radius: 14px;
+		padding: 2.5rem 3.5rem;
+		width: min(640px, 90vw);
+		text-align: center;
+		box-shadow: 0 0 30px rgba(77, 77, 255, 0.4), 0 0 60px rgba(111, 0, 255, 0.25);
+		position: relative;
+		animation: floatIn .9s ease-out;
+	}
+
+	@keyframes floatIn {
+		from { opacity: 0; transform: translateY(40px) scale(.96); }
+		to { opacity: 1; transform: translateY(0) scale(1); }
+	}
+
+	.code {
+		font-size: clamp(4rem, 14vw, 6.5rem);
+		line-height: 1;
+		font-weight: 700;
+		letter-spacing: .15rem;
+		background: linear-gradient(135deg, var(--primary-blue), var(--primary-purple));
+		-webkit-background-clip: text;
+		color: transparent;
+		position: relative;
+		text-shadow: 0 0 18px rgba(77,77,255,.45);
+		animation: pulseGlow 3.5s ease-in-out infinite;
+		margin: 0 0 1.25rem 0;
+	}
+
+	@keyframes pulseGlow {
+		0%,100% { text-shadow: 0 0 14px rgba(77,77,255,.35), 0 0 28px rgba(111,0,255,.25); }
+		50% { text-shadow: 0 0 24px rgba(77,77,255,.55), 0 0 48px rgba(111,0,255,.35); }
+	}
+
+	h2 { margin: 0 0 1.1rem 0; font-weight: 400; color: var(--text-primary); }
+
+	p { margin: 0 0 1.75rem 0; color: var(--text-secondary); line-height: 1.5; }
+
+	.actions { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+
+	.btn {
+		background: var(--primary-blue);
+		color: #fff;
+		border: none;
+		padding: .85rem 1.4rem;
+		font-family: 'Exo 2', sans-serif;
+		font-size: .95rem;
+		font-weight: 700;
+		border-radius: 6px;
+		cursor: pointer;
+		position: relative;
+		letter-spacing: .05rem;
+		transition: background .3s ease, box-shadow .3s ease, transform .15s ease;
+	}
+
+	.btn:hover { background: var(--primary-purple); box-shadow: 0 0 16px rgba(111,0,255,.6); }
+	.btn:active { transform: scale(.96); }
+
+	.btn-outline {
+		background: transparent;
+		border: 1px solid var(--primary-purple);
+		color: var(--text-primary);
+	}
+	.btn-outline:hover { background: var(--primary-purple); }
+
+	.hint { font-size: .75rem; opacity: .45; margin-top: 2rem; letter-spacing: .08rem; }
+
+	.glitch-layer {
+		position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: .15;
+		background: repeating-linear-gradient( 0deg, rgba(255,255,255,.07) 0px, rgba(255,255,255,.07) 1px, transparent 1px, transparent 2px );
+		animation: scan 6s linear infinite;
+	}
+	@keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+
+	a { text-decoration: none; }
+</style>
+
+<!DOCTYPE html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="Expires" content="0" />
+		<title><%= title %> | 404</title>
+		<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;700&display=swap" rel="stylesheet" />
+	</head>
+	<body>
+		<div class="error-container">
+			<div class="glitch-layer"></div>
+			<div class="code">404</div>
+			<h2>Página No Encontrada</h2>
+			<p>
+				El recurso solicitado no existe o fue movido.<br />
+				Verifica la URL o regresa al panel de servicios.
+			</p>
+			<div class="actions">
+				<a href="/dashboard" class="btn">Ir al Dashboard</a>
+				<a href="/logout" class="btn btn-outline">Re-autenticar</a>
+				<button class="btn" id="retry-btn">Reintentar</button>
+			</div>
+			<div class="hint">AUTH SERVICE · SYSTEM STATUS: OPERATIONAL</div>
+		</div>
+
+		<script>
+			// Evita mostrar versión cacheada
+			window.addEventListener('pageshow', (event) => { if (event.persisted) location.reload(); });
+			document.getElementById('retry-btn').addEventListener('click', () => { history.back(); });
+		</script>
+	</body>
+</html>

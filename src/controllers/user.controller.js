@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken")
 
 const { user_model } = require("../models/mongo/users.model.js")
 
-const { } = require("../utils/env.utils.js")
+const { JWT_SECRET_KEY, SECURED } = require("../utils/env.utils.js")
 const { response } = require("express")
 
 class user_controller {
@@ -33,7 +33,7 @@ class user_controller {
                     {
                         signed: true,
                         httpOnly: true,
-                        secure: true,
+                        secure: SECURED,
                         sameSite: "strict",
                         maxAge: 1000 * 60 * 60 * 24 * 30
                     }

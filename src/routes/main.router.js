@@ -2,6 +2,7 @@ const express = require('express')
 const axios = require("axios")
 
 const { title } = require("../utils/data.utils.js")
+const { SECURED } = require('../utils/env.utils.js')
 
 const { Logged, Unlogged } = require('../middlewares/auth-login.middleware.js')
 
@@ -147,7 +148,7 @@ app.get("/logout", function (req, res) {
     res.clearCookie("refeshToken", {
         signed: true,
         httpOnly: true,
-        secure: true,
+        secure: SECURED,
         sameSite: 'Strict'
     })
 

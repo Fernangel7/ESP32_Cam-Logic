@@ -117,6 +117,23 @@
             box-shadow: 0 0 15px var(--primary-purple);
         }
 
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+        }
+
+        #logout-btn {
+            background: transparent;
+            border: 1px solid var(--primary-purple);
+            color: var(--text-primary);
+        }
+
+        #logout-btn:hover {
+            background: var(--primary-purple);
+            box-shadow: 0 0 15px var(--primary-purple);
+        }
+
         /* --- NUEVO ESTILO: Mensaje de "No hay servicios" --- */
         .no-services-msg {
             display: none;
@@ -333,9 +350,12 @@
 
             <div class="main-header">
                 <h2>Servicios Vinculados</h2>
-                <button id="add-service-btn" class="nav-button">
-                    Añadir Servicio
-                </button>
+                <div class="header-actions">
+                    <button id="add-service-btn" class="nav-button">
+                        Añadir Servicio
+                    </button>
+                    <a href="/logout" id="logout-btn" class="nav-button" style="text-decoration:none; display:inline-block; text-align:center;">Logout</a>
+                </div>
             </div>
 
             <div id="service-list">
@@ -623,14 +643,101 @@
         document.querySelectorAll('.show_keys_service').forEach((e) => {
             e.addEventListener('click', function (obj) {
                 try {
+                    const uuid_service = [...[...e.parentElement.parentElement.children].filter(element => { if (element.className === "service-info") return element })[0].children].filter(element => { return element.tagName === 'INPUT' && element.type === 'hidden' })[0].value
+                    const s_name_id_parent = [...[...e.parentElement.parentElement.children].filter(element => { if (element.className === "service-info") return element })[0].children].filter(element => { return element.tagName === 'H4' })[0]
+                    const s_name = s_name_id_parent.firstChild.textContent.trim()
+                    const s_identifier = s_name_id_parent.firstElementChild.textContent.trim()
+                    const src_title = `${s_name}`
+
                     const cf_data = JSON.parse([...[...e.parentElement.parentElement.children].filter(element => { if (element.className === "card-actions") return element })[0].children].filter(element => { return element.tagName === "INPUT" && element.type === "hidden" })[0].value)
 
                     const rdb = cf_data
                     const accessKey = rdb.access_key
                     const accessPassword = rdb.access_password
                     const endpointUrl = rdb.endpoint_url
-                    const example_input = 'No Disponible'
-                    const example_output = 'No Disponible'
+                    const example_input = `${ src_title == 'Facial Recognition' ? `input: {
+    server: {
+        nn_api: {
+            endpoint: {
+                activated: true,
+                url: 'https://[hostname]/api/nn_models/facial_recognition/v1/:UUID',
+                method: 'POST',
+                access_key: 'user_key1234',
+                access_password: 'password1234',
+                data: {
+                    objective: 'image_base64',
+                    image_base64: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD...'
+                }
+            }
+        },
+        data_objectives: {
+            mutiple_person: {
+                activated: true, //false = only one person recognized | true = multiple persons recognized
+                objectives: [ //only for mutiple_person = true
+                    {
+                        name: 'Unknown', //recognized person name
+                        role: 'Owner', //recognized person role
+                        personalized_message: 'Access Granted!', //personalized message for the recognized person
+                        icon: { //icon for the recognized person
+                            activated: true, //activate icon
+                            type: 'success', //type: success | error
+                            binary_icon_schema: true //true = binary icon schema | false = url icon schema
+                        },
+                        valid: true //true = access granted | false = access denied
+                    },
+                    {
+                        name: 'Unknown', //recognized person name
+                        role: 'Accountant', //recognized person role
+                        personalized_message: 'Access Denied!', //personalized message for the recognized person
+                        icon: { //icon for the recognized person
+                            activated: true, // activate icon
+                            type: 'error', //type: success | error
+                            binary_icon_schema: true //true = binary icon schema | false = url icon schema
+                        },
+                        valid: false //true = access granted | false = access denied
+                    }
+                ],
+                target: { //only for mutiple_person = false
+                    name: 'Unknown', //recognized person name
+                    role: 'Visitor', //recognized person role
+                    personalized_message: 'Access Granted!', //personalized message for the recognized person
+                    icon: { //icon for the recognized person
+                        activated: true, //type: success | error
+                        type: 'success', //icon type
+                        binary_icon_schema: true //true = binary icon schema | false = url icon schema
+                    },
+                    valid: false //true = access granted | false = access denied
+                },
+                save: { //save recognized persons data
+                    access_granted: true, //save access granted persons
+                    access_denied: true //save access denied persons
+                }
+            }
+        }
+    }
+}` : 'No Disponible'}`
+                    const example_output = `${ src_title == 'Facial Recognition' ? `output: {
+    status: 0, //possible status: 0 thru 255
+        response: 'NN Service Configured', //possible responses: NN Service Configured | Access Granted | Access Denied | No Face Detected | Multiple Faces Detected
+            data: {
+        recognized_persons: [ //array of recognized persons
+            {
+                any: true, //true = any person recognized | false = specific person recognized
+                name: 'Unknown', //recognized person name
+                role: 'Owner', //recognized person role
+                personalized_message: 'Welcome back, John!', //personalized message for the recognized person
+                icon: { //icon for the recognized person
+                    activated: true, //activate icon
+                    type: 'success', //type: success | error
+                    binary_icon_schema: true, //true = binary icon schema | false = url icon schema
+                },
+                valid: true //true = access granted | false = access denied
+            }
+        ],
+            target_image: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD...', //base64 schema of the target image
+                processed_image: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD...' //base64 schema of the processed image
+    }
+}` : 'No Disponible'}`
 
                     const handleCopyClick = (textToCopy, buttonElement) => {
                         navigator.clipboard.writeText(textToCopy).then(() => {
@@ -659,10 +766,10 @@
                                         <button class="copy-btn swal2-styled swal2-default" data-copy-text="${endpointUrl}" style="margin-left: 10px; font-size: 0.8em; padding: 5px 10px; background: #7066e0; color: #bfbfbf;">Copiar</button>
                                     </p>
                                     <p><strong>Input Example:</strong> {...}
-                                        <button class="copy-btn swal2-styled swal2-default" data-copy-text="${example_input}" style="margin-left: 10px; font-size: 0.8em; padding: 5px 10px; background: #7066e0; color: #bfbfbf;" disabled>Copiar</button>
+                                        <button class="copy-btn swal2-styled swal2-default" data-copy-text="${example_input}" style="margin-left: 10px; font-size: 0.8em; padding: 5px 10px; background: #7066e0; color: #bfbfbf;" ${ src_title == 'Facial Recognition' ? '' : 'disabled'}>Copiar</button>
                                     </p>
                                     <p><strong>Output Example:</strong> {...}
-                                        <button class="copy-btn swal2-styled swal2-default" data-copy-text="${example_output}" style="margin-left: 10px; font-size: 0.8em; padding: 5px 10px; background: #7066e0; color: #bfbfbf;" disabled>Copiar</button>
+                                        <button class="copy-btn swal2-styled swal2-default" data-copy-text="${example_output}" style="margin-left: 10px; font-size: 0.8em; padding: 5px 10px; background: #7066e0; color: #bfbfbf;" ${ src_title == 'Facial Recognition' ? '' : 'disabled'}>Copiar</button>
                                     </p>
                                 </div>
                             `,

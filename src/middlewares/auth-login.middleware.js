@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken')
-const { JWT_SECRET_KEY } = require('../utils/env.utils.js')
+const { JWT_SECRET_KEY, SECURED } = require('../utils/env.utils.js')
 
 function Unlogged(req, res, next) { //No logged
     const token = req.signedCookies.refeshToken
@@ -15,7 +15,7 @@ function Unlogged(req, res, next) { //No logged
             res.clearCookie('refeshToken', {
                 signed: true,
                 httpOnly: true,
-                secure: true,
+                secure: SECURED,
                 sameSite: 'Strict'
             })
 
@@ -44,7 +44,7 @@ function Logged(req, res, next) { //Logged verify
             res.clearCookie('refeshToken', {
                 signed: true,
                 httpOnly: true,
-                secure: true,
+                secure: SECURED,
                 sameSite: 'Strict'
             })
             next()

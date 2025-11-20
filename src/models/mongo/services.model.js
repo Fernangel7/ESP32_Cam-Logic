@@ -83,7 +83,7 @@ class service_model {
                 n_rep: crypto.randomInt(10000000, 99999999),
                 config_data: {
                     activated: true,
-                    endpoint_url: `https://[host]/api/nn_models/facial_recognition/v1/:${crypto.randomUUID()}`,
+                    endpoint_url: `https://[hostname]/api/nn_models/facial_recognition/v1/${crypto.randomUUID()}/stable`,
                     method: 'POST',
                     access_key: crypto.randomBytes(16).toString('hex'),
                     access_password: crypto.randomBytes(16).toString('hex')
@@ -114,13 +114,13 @@ input: {
         nn_api: {
             endpoint: {
                 activated: true,
-                url: 'https://[hostname]/api/nn_models/facial_recognition/v1/:UUID',
+                url: 'https://[hostname]/api/nn_models/facial_recognition/v1/uuid/stable',
                 method: 'POST',
                 access_key: 'user_key1234',
                 access_password: 'password1234',
                 data: {
-                    objective: 'image_base64',
-                    image_base64: 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD...'
+                    objective: 'image_bits',
+                    image_bits: 'data:image/jpeg;bits,/9j/4AAQSkZJRgABAQAAAQABAAD...'
                 }
             }
         },
@@ -137,6 +137,7 @@ input: {
                             type: 'success', //type: success | error
                             binary_icon_schema: true //true = binary icon schema | false = url icon schema
                         },
+                        image: 'https://',
                         valid: true //true = access granted | false = access denied
                     },
                     {
@@ -148,6 +149,7 @@ input: {
                             type: 'error', //type: success | error
                             binary_icon_schema: true //true = binary icon schema | false = url icon schema
                         },
+                        image: 'https://',
                         valid: false //true = access granted | false = access denied
                     }
                 ],
@@ -160,6 +162,7 @@ input: {
                         type: 'success', //icon type
                         binary_icon_schema: true //true = binary icon schema | false = url icon schema
                     },
+                    image: 'https://',
                     valid: false //true = access granted | false = access denied
                 },
                 save: { //save recognized persons data
