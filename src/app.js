@@ -40,7 +40,7 @@ connectMongo()
 //setting middlewares
 app.use(corsMiddleware())
 app.use(cookieParser(COOKIE_SECRET_KEY))
-app.use(express.json())
+app.use(express.json({ limit: '10mb', strict: true, type: 'application/json', inflate: true }))
 
 //setting express routers
 app.use("/", main_router)

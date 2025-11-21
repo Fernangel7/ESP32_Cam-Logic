@@ -1,216 +1,146 @@
-# import cv2
-# import face_recognition
-# import os
-# import numpy as np
-
-# # Cargar imágenes conocidas
-# known_face_encodings = []
-# known_face_names = []
-
-# for filename in os.listdir("known_faces"):
-#     if filename.endswith(".jpg") or filename.endswith(".png"):
-#         image = face_recognition.load_image_file(f"known_faces/{filename}")
-#         encoding = face_recognition.face_encodings(image)[0]
-#         known_face_encodings.append(encoding)
-#         known_face_names.append(os.path.splitext(filename)[0])
-
-# # Inicializar cámara
-# cap = cv2.VideoCapture(0)
-
-# while True:
-#     ret, frame = cap.read()
-#     if not ret:
-#         break
-
-#     # Convertir BGR a RGB
-#     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-#     # Detectar caras y generar embeddings
-#     face_locations = face_recognition.face_locations(rgb_frame)
-#     face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
-
-#     for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
-#         # Comparar con caras conocidas
-#         matches = face_recognition.compare_faces(known_face_encodings, face_encoding)
-#         name = "Unknown"
-
-#         # Elegir el primero que coincida
-#         face_distances = face_recognition.face_distance(known_face_encodings, face_encoding)
-#         if len(face_distances) > 0:
-#             best_match_index = np.argmin(face_distances)
-#             if matches[best_match_index]:
-#                 name = known_face_names[best_match_index]
-
-#         # Dibujar rectángulo y nombre
-#         cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
-#         cv2.putText(frame, name, (left, top-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0,255,0), 2)
-
-#     cv2.imshow("Facial Recognition", frame)
-
-#     if cv2.waitKey(1) & 0xFF == 27:  # Esc para salir
-#         break
-
-# cap.release()
-# cv2.destroyAllWindows()
-
-
-# import sys
-# import json
-
-# try:
-#     # leer todo el stdin
-#     data = sys.stdin.read()
-#     payload = json.loads(data)
-
-#     # ------- VALIDACIÓN -------
-
-#     required_fields = ["objective", "compare_with"]
-
-#     for field in required_fields:
-#         if field not in payload:
-#             print(json.dumps({
-#                 "status": "error",
-#                 "message": f"Missing field: {field}"
-#             }))
-#             sys.exit(0)
-
-#     # Si quieres validar más profundamente:
-#     # if "nn_api" not in payload["server"]: ...
-
-#     # ------- TODO OK -------
-#     print(json.dumps({
-#         "status": "ok",
-#         "message": "JSON recibido correctamente",
-#         "received_keys": list(payload.keys())
-#     }))
-
-# except Exception as e:
-#     print(json.dumps({
-#         "status": "error",
-#         "message": str(e)
-#     }))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import sys
 import json
-import face_recognition
-import numpy as np
-import os
+import os # ¡Importante! Necesario para 'os.path.basename' y para leer archivos
 
+try:
+    # Intenta importar las librerías necesarias
+    import face_recognition
+    import numpy as np
+except Exception as e:
+    # Si falla, devuelve un JSON de error de importación
+    print(json.dumps({"status": "error", "message": f"Error de importación en Python: {e}"}))
+    sys.exit(1)
+
+# --- Función Auxiliar ---
+# Carga la imagen, detecta el rostro y devuelve la codificación.
 def load_face_encoding(image_path):
-    """Return face encoding from an image path or None."""
-    try:
-        img = face_recognition.load_image_file(image_path)
-        encodings = face_recognition.face_encodings(img)
-        return encodings[0] if len(encodings) > 0 else None
-    except Exception as e:
-        print(f"Error loading {image_path}: {e}")
+    # Asegúrate de que el archivo exista antes de intentar cargarlo
+    if not os.path.exists(image_path):
+        print(f"Error: La ruta de imagen no existe: {image_path}", file=sys.stderr)
         return None
-    
-def main():
-    # Leer JSON desde stdin
-    raw = sys.stdin.read()
-    data = json.loads(raw)
+        
+    try:
+        # Cargar imagen
+        image = face_recognition.load_image_file(image_path)
+        
+        # Encontrar todas las codificaciones de rostros en la imagen.
+        # Solo tomaremos el primero si hay varios, o None si no hay.
+        face_encodings = face_recognition.face_encodings(image)
+        
+        if len(face_encodings) > 0:
+            return face_encodings[0]
+        else:
+            return None
+            
+    except Exception as e:
+        print(f"Error al procesar la imagen {image_path}: {e}", file=sys.stderr)
+        return None
 
-    drive_paths = data["drive_paths"]          # Array de imágenes en Google Drive
-    target_image_path = data["target_image"]   # Imagen a comparar
+
+def main():
+    raw = sys.stdin.read()
+    
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        print(json.dumps({
+            "status": "error", 
+            "message": "Error al decodificar JSON de la entrada estándar."
+        }))
+        sys.exit(1)
+
+    # --- CORRECCIÓN CLAVE 1: Extraer la ruta del objeto ---
+    # `images_data` ahora es un array de objetos: [{"name": "...", "path": "..."}, ...]
+    # Necesitas solo las rutas:
+    images_objects = data.get("images_data", [])          
+    target_image_object = data.get("target_image")
+    
+    # Validación inicial de datos
+    if not target_image_object or "path" not in target_image_object:
+        print(json.dumps({
+            "status": "error",
+            "message": "Datos de imagen objetivo incompletos o ausentes."
+        }))
+        return
+
+    # --- CORRECCIÓN CLAVE 2: Usar `path` de los objetos ---
+    target_image_path = target_image_object["path"]
 
     # ---- Cargar imagen objetivo ----
     target_encoding = load_face_encoding(target_image_path)
     if target_encoding is None:
         print(json.dumps({
             "status": "error",
-            "message": "No se pudo leer o detectar rostro en la imagen objetivo"
+            "message": "No se pudo leer o detectar rostro en la imagen objetivo."
         }))
         return
 
     known_encodings = []
-    known_names = []
+    known_identifiers = []  # Usará uuid si existe, sino name como fallback
 
-    # ---- Cargar imágenes desde Google Drive ----
-    for path in drive_paths:
-        encoding = load_face_encoding(path)
-        if encoding is not None:
-            known_encodings.append(encoding)
-            known_names.append(os.path.basename(path))
+    # ---- Cargar imágenes de comparación ----
+    for image_obj in images_objects:
+        # Extraer la ruta y posibles identificadores
+        path = image_obj.get("path")
+        name = image_obj.get("name")
+        uuid = image_obj.get("uuid")
+
+        if path and (uuid or name):
+            encoding = load_face_encoding(path)
+            if encoding is not None:
+                known_encodings.append(encoding)
+                # Preferir uuid; si no existe, usar name como respaldo
+                identifier = uuid if uuid else name
+                known_identifiers.append(identifier)
+            else:
+                ident_txt = uuid if uuid else name if name else "(sin identificador)"
+                print(f"Advertencia: no se detectó rostro en la imagen de {ident_txt} ({path})", file=sys.stderr)
         else:
-            print(f"Advertencia: no se detectó rostro en {path}")
+            print("Advertencia: Objeto de imagen en 'images_data' incompleto (falta 'path' o identificador 'uuid/name').", file=sys.stderr)
+
 
     if len(known_encodings) == 0:
         print(json.dumps({
             "status": "error",
-            "message": "No se detectaron rostros en las imágenes de Drive"
+            "message": "No se detectaron rostros en las imágenes de comparación."
         }))
         return
 
     # ---- Comparación ----
-    results = face_recognition.compare_faces(known_encodings, target_encoding)
+    # Calcula la distancia euclidiana entre la imagen objetivo y cada rostro conocido.
     distances = face_recognition.face_distance(known_encodings, target_encoding)
 
-    # Buscar mejor coincidencia
+    # Buscar mejor coincidencia (la menor distancia)
     best_index = np.argmin(distances)
-    best_match = results[best_index]
+    
+    # Compara si la distancia más corta es considerada una "coincidencia" (por defecto, la librería usa 0.6)
+    # También puedes usar face_recognition.compare_faces, pero usar la distancia es más informativo
+    # y face_recognition.compare_faces(known_encodings, target_encoding) asume un umbral por ti.
+    # En este caso, usaremos el resultado de la distancia más pequeña.
 
-    if best_match:
+    # Determinar si la mejor coincidencia está por debajo del umbral estándar de 0.6
+    # Este es el umbral usado por defecto por face_recognition.compare_faces.
+    is_match = distances[best_index] <= 0.6 
+
+    if is_match:
         print(json.dumps({
             "status": "ok",
-            "match": known_names[best_index],
+            "match": known_identifiers[best_index],  # Retorna uuid (o name como fallback si no había uuid)
             "distance": float(distances[best_index])
         }))
     else:
+        # No cumple el umbral: se devuelve Unknown y el uuid/name más cercano como best_guess_identifier
         print(json.dumps({
             "status": "ok",
-            "match": "Unknown"
+            "match": "Unknown",
+            "best_guess_identifier": known_identifiers[best_index],
+            "distance": float(distances[best_index])
         }))
 
 
 if __name__ == "__main__":
+    # La validación secundaria que tenías abajo es redundante si solo usas `main()`
+    # y depende del formato de JSON que se espera.
+    # Si el JSON es el que proporcionaste (con 'images_data' y 'target_image'),
+    # entonces el código corregido de `main()` es suficiente.
     main()
-
-
-
-# try:
-#     # leer todo el stdin
-#     data = sys.stdin.read()
-#     payload = json.loads(data)
-
-#     # ------- VALIDACIÓN -------
-
-#     required_fields = ["objective", "compare_with"]
-
-#     for field in required_fields:
-#         if field not in payload:
-#             print(json.dumps({
-#                 "status": "error",
-#                 "message": f"Missing field: {field}"
-#             }))
-#             sys.exit(0)
-
-#     # Si quieres validar más profundamente:
-#     # if "nn_api" not in payload["server"]: ...
-
-#     # ------- TODO OK -------
-#     print(json.dumps({
-#         "status": "ok",
-#         "message": "JSON recibido correctamente",
-#         "received_keys": list(payload.keys())
-#     }))
-
-# except Exception as e:
-#     print(json.dumps({
-#         "status": "error",
-#         "message": str(e)
-#     }))

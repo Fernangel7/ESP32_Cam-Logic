@@ -1,5 +1,102 @@
 @host = http://localhost:5000
 
+### Final Test
+POST {{host}}/api/nn_models/facial_recognition/v1/a59cdbbe-3687-4bde-9076-9aa2c8674b74/preview
+X-Device: test-device-RestClient
+Content-Type: application/json
+Authorization: agent_id=asd;access_key=asd
+
+{
+	"input": {
+		"server": {
+			"nn_api": {
+				"endpoint": {
+					"activated": true,
+					"url": "https://[hostname]/api/nn_models/facial_recognition/v1/uuid/stable",
+					"method": "POST",
+					"access_key": "user_key1234",
+					"access_password": "password1234",
+					"data": {
+						"objective": "Angel",
+						"image_bits": "bits_data_image"
+					}
+				}
+			},
+			"data_objectives": {
+				"mutiple_person": {
+					"activated": true,
+					"objectives": [
+						{
+							"name": "Angel",
+							"role": "Owner",
+							"personalized_message": "Access Granted!",
+							"icon": {
+								"activated": true,
+								"type": "success",
+								"binary_icon_schema": true
+							},
+							"image": "",
+							"valid": true
+						},
+						{
+							"name": "Godoy",
+							"role": "Accountant",
+							"personalized_message": "Access Denied!",
+							"icon": {
+								"activated": true,
+								"type": "error",
+								"binary_icon_schema": true
+							},
+							"image": "",
+							"valid": false
+						},
+						{
+							"name": "Donnovan",
+							"role": "Accountant",
+							"personalized_message": "Access Denied!",
+							"icon": {
+								"activated": true,
+								"type": "error",
+								"binary_icon_schema": true
+							},
+							"image": "",
+							"valid": false
+						},
+						{
+							"name": "Diego",
+							"role": "Accountant",
+							"personalized_message": "Access Denied!",
+							"icon": {
+								"activated": true,
+								"type": "error",
+								"binary_icon_schema": true
+							},
+							"image": "",
+							"valid": false
+						},
+						{
+							"name": "Jocelyn",
+							"role": "Accountant",
+							"personalized_message": "Access Denied!",
+							"icon": {
+								"activated": true,
+								"type": "error",
+								"binary_icon_schema": true
+							},
+							"image": "",
+							"valid": false
+						}
+					],
+					"save": {
+						"access_granted": true,
+						"access_denied": true
+					}
+				}
+			}
+		}
+	}
+}
+
 ### Facial Recognition preview (POST enforced)
 POST {{host}}/api/nn_models/facial_recognition/v1/a59cdbbe-3687-4bde-9076-9aa2c8674b74/preview
 X-Device: test-device-RestClient
@@ -24,7 +121,7 @@ Authorization: agent_id=asd;access_key=asd
 			},
 			"data_objectives": {
 				"mutiple_person": {
-					"activated": false,
+					"activated": true,
 					"objectives": [
 						{
 							"name": "Unknown",

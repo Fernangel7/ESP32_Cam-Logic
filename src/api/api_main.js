@@ -15,5 +15,5 @@ app.use('/nn_models/facial_recognition', require('./endpoints/facial_recognition
 
 
 module.exports = {
-    api_main_router: app
+  api_main_router: app
 }
